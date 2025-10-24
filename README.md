@@ -14,6 +14,10 @@ cd BetOS-backend
 2. Monte a imagem docker e inicie o container:
 
 ```sh
+wsl -d archlinux
+source .venv/bin/activate
+./initialize.sh
+
 docker build -t betos-backend
 docker run -p 3000:80 betos-backend
 ```
