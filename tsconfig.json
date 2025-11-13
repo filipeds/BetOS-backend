@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    /* --- Configurações Essenciais de Módulos --- */
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2020",
+    /* --- Estrutura de Pastas do Projeto --- */
+    "rootDir": "./src",
+    "outDir": "./dist",
+    /* --- Boas Práticas e Rigor do Código --- */
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  /* --- Arquivos a Incluir na Compilação --- */
+  "include": [
+    "src/**/*"
+  ],
+  /* --- Arquivos a Excluir da Compilação --- */
+  "exclude": [
+    "node_modules"
+  ]
+}
+

@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model assinatura {
+  id_assinatura      Int                        @id @default(autoincrement())
+  numero_os          Int
+  tipo_assinatura    assinatura_tipo_assinatura
+  caminho_assinatura String                     @db.VarChar(255)
+  data_assinatura    DateTime?                  @default(now()) @db.Timestamp(0)
+  ordem_servico      ordem_servico              @relation(fields: [numero_os], references: [numero_os], onDelete: Cascade, map: "fk_assinatura_os")
+
+  @@index([numero_os], map: "fk_assinatura_os")
+}
+
+model cliente {
+  id_cliente    Int             @id @default(autoincrement())
+  nome          String          @db.VarChar(100)
+  cnpj          String          @unique(map: "cnpj") @db.VarChar(18)
+  cep           String          @db.VarChar(9)
+  numero        String          @db.VarChar(10)
+  telefone      String          @db.VarChar(20)
+  data_cadastro DateTime?       @default(now()) @db.Timestamp(0)
+  ativo         Boolean?        @default(true)
+  ordem_servico ordem_servico[]
+}
+
+model gestor {
+  id_gestor     Int       @id @default(autoincrement())
+  nome          String    @db.VarChar(100)
+  cnpj          String    @unique(map: "cnpj") @db.VarChar(18)
+  login         String    @unique(map: "login") @db.VarChar(50)
+  senha         String    @db.VarChar(255)
+  data_cadastro DateTime? @default(now()) @db.Timestamp(0)
+  ativo         Boolean?  @default(true)
+  tecnico       tecnico[]
+}
+
+model ordem_servico {
+  numero_os       Int                       @id @default(autoincrement())
+  id_cliente      Int
+  id_tecnico      Int?
+  custos          Decimal?                  @default(0.00) @db.Decimal(10, 2)
+  data_abertura   DateTime?                 @default(now()) @db.Timestamp(0)
+  data_fechamento DateTime?                 @db.Timestamp(0)
+  finalizada      ordem_servico_finalizada? @default(N)
+  defeitos        String?                   @db.Text
+  observacoes     String?                   @db.Text
+  rua             String?                   @db.VarChar(255)
+  cep             String?                   @db.VarChar(9)
+  numero          String?                   @db.VarChar(10)
+  complemento     String?                   @db.VarChar(255)
+  assinatura      assinatura[]
+  cliente         cliente                   @relation(fields: [id_cliente], references: [id_cliente], map: "fk_os_cliente")
+  tecnico         tecnico?                  @relation(fields: [id_tecnico], references: [id_tecnico], map: "fk_os_tecnico")
+  os_foto         os_foto[]
+  equipamento     equipamento[]
+
+  @@index([id_cliente], map: "fk_os_cliente")
+  @@index([id_tecnico], map: "fk_os_tecnico")
+  @@index([data_abertura], map: "idx_os_data_abertura")
+  @@index([finalizada], map: "idx_os_finalizada")
+}
+
+model os_foto {
+  id_foto       Int           @id @default(autoincrement())
+  numero_os     Int
+  caminho_foto  String        @db.VarChar(255)
+  data_upload   DateTime?     @default(now()) @db.Timestamp(0)
+  descricao     String?       @db.VarChar(255)
+  ordem_servico ordem_servico @relation(fields: [numero_os], references: [numero_os], onDelete: Cascade, map: "fk_foto_os")
+
+  @@index([numero_os], map: "fk_foto_os")
+}
+
+model equipamento {
+  id_equipamento Int                    @id @default(autoincrement())
+  nome           String                 @db.VarChar(100)
+  tipo           equipamento_tipo
+  num_serie      String                 @db.VarChar(100)
+  numero_os      Int
+  ordem_servico  ordem_servico          @relation(fields: [numero_os], references: [numero_os], onDelete: Cascade, map: "fk_equipamento_os")
+  defeito        defeito[]
+
+  @@index([numero_os], map: "fk_equipamento_os")
+}
+
+model defeito {
+  id_defeito      Int         @id @default(autoincrement())
+  peca            String      @db.Text
+  defeito         String      @db.Text
+  data_registro   DateTime?   @default(now()) @db.Timestamp(0)
+  id_equipamento  Int
+  equipamento     equipamento @relation(fields: [id_equipamento], references: [id_equipamento], onDelete: Cascade, map: "fk_defeito_equipamento")
+
+  @@index([id_equipamento], map: "fk_defeito_equipamento")
+}
+
+model tecnico {
+  id_tecnico    Int             @id @default(autoincrement())
+  nome          String          @db.VarChar(100)
+  cnpj          String          @unique(map: "cnpj") @db.VarChar(18)
+  login         String          @unique(map: "login") @db.VarChar(50)
+  senha         String          @db.VarChar(255)
+  id_gestor     Int
+  data_cadastro DateTime?       @default(now()) @db.Timestamp(0)
+  ativo         Boolean?        @default(true)
+  ordem_servico ordem_servico[]
+  gestor        gestor          @relation(fields: [id_gestor], references: [id_gestor], map: "fk_tecnico_gestor")
+
+  @@index([id_gestor], map: "fk_tecnico_gestor")
+}
+
+enum assinatura_tipo_assinatura {
+  TECNICO
+  CLIENTE
+}
+
+enum ordem_servico_finalizada {
+  Y
+  N
+}
+
+enum equipamento_tipo {
+  CHECK_STANDS_MOBILIAS
+  CHECK_OUTS
+  GONDOLAS
+  RACK_INTEGRADO
+  REFRIGERACAO_MAQUINA_ACOPLADA
+  ELETROFRIO
+}
